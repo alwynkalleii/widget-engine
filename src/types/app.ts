@@ -7,5 +7,5 @@ export type WidgetManifest = {
   description: string;
   author: string;
 
-  window?: Omit<WebviewOptions, "x" | "y" | "width" | "height"> & WindowOptions;
+  window?: Omit<WebviewOptions, "x" | "y" | "width" | "height"> & WindowOptions & { desktopUnderlay: Boolean };
 };

@@ -1,49 +1,43 @@
-use axum::response::IntoResponse;
 use axum::{
-    extract::{Request, State},
-    response::Response,
+    body::Body,
+    extract::Request,
+    http::StatusCode,
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    Router,
 };
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
-use tower::ServiceExt;
 use tower_http::services::ServeDir;
 
-#[derive(Clone)]
-pub struct ServerState {
-    pub widgets_dir: PathBuf,
+/// Middleware to perform subdomain-to-path rewriting.
+///
+/// This function captures the `{name}` part from `widget.{name}.localhost`,
+/// then prepends it to the existing URI path while preserving all original
+/// query parameters.
+///
+/// Example: `widget.app1.localhost/index.html?id=1` becomes `/app1/index.html?id=1`.
+///
+/// Returns a `404 Not Found` response if the request does not follow the required
+/// subdomain pattern.
+async fn rewrite_subdomain_to_path(mut request: Request<Body>, next: Next) -> Response {
+    let host = request.headers().get("host").and_then(|h| h.to_str().ok()).unwrap_or("");
+
+    if let Some(rest) = host.strip_prefix("widget.") {
+        if let Some((name, _)) = rest.split_once(".localhost") {
+            let pq = request.uri().path_and_query().map(|v| v.as_str()).unwrap_or("/");
+
+            if let Ok(uri) = format!("/{}{}", name, pq).parse() {
+                *request.uri_mut() = uri;
+                return next.run(request).await;
+            }
+        }
+    }
+
+    StatusCode::NOT_FOUND.into_response()
 }
 
-// 2. HTTP 请求拦截处理器（自动注入 State）
-pub async fn dynamic_subdomain_serve(
-    State(state): State<Arc<Mutex<ServerState>>>, // <--- 使用 axum 的 State 提取器接收 Arc 状态
-    req: Request,
-) -> Response {
-    let host: &str = req
-        .headers()
-        .get("host")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or(".localhost:14231");
-    // println!("Host: {:?}", host);
-    // Host: "test.localhost:14231"
+pub fn get_router(widgets_dir: PathBuf) -> Router {
+    std::fs::create_dir_all(&widgets_dir).unwrap();
 
-    let widget_name = host.trim_end_matches(".localhost:14231");
-
-    // 从共享状态中安全获取基础路径并拼接
-    let target_dir = {
-        let state_guard = state.lock().unwrap();
-        state_guard.widgets_dir.join(widget_name)
-    };
-
-    // println!("Target_dir: {:?}", target_dir);
-    // Target_dir: $appData/widgets/web-tools"
-
-    // 代理静态文件
-    match ServeDir::new(target_dir).oneshot(req).await {
-        Ok(res) => res.into_response(),
-        Err(_) => (
-            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            "Server Error",
-        )
-            .into_response(),
-    }
+    Router::new().fallback_service(ServeDir::new(&widgets_dir)).layer(middleware::from_fn(rewrite_subdomain_to_path))
 }

@@ -10,10 +10,12 @@ import { readDir, BaseDirectory, exists, readTextFile } from "@tauri-apps/plugin
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-solid";
+import { getServices } from "tauri-plugin-httpd-api";
 
 export function WidgetList() {
   const [widgets, setWidgets] = createSignal<{ folder_name: string; manifest: WidgetManifest }[]>([]);
   const [runningWidgets, setRunningWidgets] = createSignal<Record<string, boolean>>({});
+  const [servicePort, setServicePort] = createSignal<number>(12312);
 
   const getWidgetList = async () => {
     const entries = await readDir("widgets", {
@@ -39,6 +41,11 @@ export function WidgetList() {
 
   onMount(async () => {
     try {
+      const services = await getServices();
+      if (services.length > 0) {
+        console.log(services[0].port);
+        setServicePort(services[0].port);
+      }
       let widgets = await getWidgetList();
       setWidgets(widgets);
     } catch (err) {
@@ -49,11 +56,12 @@ export function WidgetList() {
   const toggleWidget = async (widget: { folder_name: string; manifest: WidgetManifest }, checked: boolean) => {
     const { folder_name, manifest } = widget;
     const label = manifest.name;
-
+    const url = `http://widget.${folder_name}.localhost:${servicePort()}/index.html`;
+    console.error(url);
     if (checked) {
       const win = new WebviewWindow(label, {
         ...manifest.window,
-        url: `http://${folder_name}.localhost:14231/index.html`,
+        url,
       });
 
       win.once("tauri://created", () => {
@@ -85,26 +93,14 @@ export function WidgetList() {
 
   return (
     <div class="flex h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
-      {/* 侧边栏 */}
-      <aside class="w-64 border-r bg-white p-6 shadow-sm">
-        <div class="mb-8 text-xl font-bold text-blue-600">Widget Hub</div>
-        <nav class="space-y-2">
-          <button class="flex w-full items-center rounded-lg bg-blue-50 px-4 py-2 text-blue-700 transition-colors">
-            <span class="mr-3">🧩</span>
-            小组件列表
-          </button>
-          {/* 以后可以添加更多选项 */}
-        </nav>
-
-        <div class="absolute right-6 bottom-6 left-6">
-          <button
-            onClick={handleToogle}
-            class="flex w-full justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50"
-          >
-            切换底层模式
-          </button>
-        </div>
-      </aside>
+      <div class="absolute right-6 bottom-6 left-6">
+        <button
+          onClick={handleToogle}
+          class="flex w-full justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50"
+        >
+          切换底层模式
+        </button>
+      </div>
 
       {/* 主内容区域 */}
       <main class="flex-1 overflow-y-auto p-10">
@@ -120,8 +116,8 @@ export function WidgetList() {
                 <div class="flex justify-between rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
                   <div class="font-bold">{widget.manifest.name}</div>
                   <Switch
-                  checked={!!runningWidgets()[widget.manifest.name]}
-                  onChange={(checked) => toggleWidget(widget, checked)}
+                    checked={!!runningWidgets()[widget.manifest.name]}
+                    onChange={(checked) => toggleWidget(widget, checked)}
                   />
                   {/* <Button variant="outline" size="icon">
                     <Plus />

@@ -23,13 +23,14 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERBMEMyMUU2QjlBRDVGQjYKUldTMlg2MjU1aUVNMnJOWVBaUzNNS0p5allySW5QRkZ5TU9uamtodk9mdUNSNUw4QUF3Mk5GejgK",
+      "endpoints": ["https://github.com/alwynkalleii/widget-engine/releases/latest/download/latest.json"]
+    }
   }
 }
