@@ -1,23 +1,23 @@
-import { WidgetList } from "./pages/widget/list";
+import { Router, Route } from "@solidjs/router";
+import { lazy } from "solid-js";
+
+import MainLayout from "./layouts/main";
+
+const AboutPage = lazy(() => import("./pages/about"));
+const WidgetDetailPage = lazy(() => import("./pages/widgets/[id]"));
+const HomePage = lazy(() => import("./pages/index"));
+const FeaturesPage = lazy(() => import("./pages/features"));
 
 function App() {
   return (
-    <div>
-      <aside class="">
-        <div class="mb-8 text-xl font-bold text-blue-600">Widget Hub</div>
-        <nav class="space-y-2">
-          <button class="flex w-full items-center rounded-lg bg-blue-50 px-4 py-2 text-blue-700 transition-colors">
-            <span class="mr-3">🧩</span>
-            小组件列表
-          </button>
-        </nav>
-
-        
-      </aside>
-      <main class="container">
-        <WidgetList />
-      </main>
-    </div>
+    <Router>
+      <Route path="/" component={MainLayout}>
+        <Route path="/" component={HomePage} />
+        <Route path="/widgets/:id" component={WidgetDetailPage} />
+        <Route path="/features" component={FeaturesPage} />
+        <Route path="/about" component={AboutPage} />
+      </Route>
+    </Router>
   );
 }
 

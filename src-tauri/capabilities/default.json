@@ -18,6 +18,7 @@
       "allow": ["$APPDATA/**/*"]
     },
     "desktop-underlay:default",
-    "httpd:default"
+    "httpd:default",
+    "process:default"
   ]
 }
