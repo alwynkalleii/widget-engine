@@ -4,7 +4,7 @@ import { lazy } from "solid-js";
 import MainLayout from "./layouts/main";
 
 const AboutPage = lazy(() => import("./pages/about"));
-const WidgetDetailPage = lazy(() => import("./pages/widgets/[id]"));
+const WidgetPage = lazy(() => import("./pages/widget"));
 const HomePage = lazy(() => import("./pages/index"));
 const FeaturesPage = lazy(() => import("./pages/features"));
 
@@ -13,7 +13,7 @@ function App() {
     <Router>
       <Route path="/" component={MainLayout}>
         <Route path="/" component={HomePage} />
-        <Route path="/widgets/:id" component={WidgetDetailPage} />
+        <Route path="/widget/:id" component={WidgetPage} />
         <Route path="/features" component={FeaturesPage} />
         <Route path="/about" component={AboutPage} />
       </Route>

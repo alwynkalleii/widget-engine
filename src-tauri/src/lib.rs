@@ -30,7 +30,7 @@ pub fn run() {
             commands::get_widget_instances,
             commands::create_instance,
             commands::start_instance,
-            commands::stop_instance,
+            // commands::stop_instance,
             commands::save_instance,
             commands::delete_instance,
             commands::update_instance_settings,

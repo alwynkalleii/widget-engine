@@ -103,23 +103,6 @@ pub(crate) async fn create_instance(
 }
 
 #[tauri::command]
-pub(crate) fn start_instance(
-    app_handle: AppHandle,
-    state: tauri::State<'_, AppState>,
-    label: String,
-) -> Result<(), String> {
-    let mut instances = state.config_manager.load_instances();
-    if let Some(instance) = instances.get_mut(&label) {
-        instance.enabled = true;
-        state.config_manager.save_instance(instance)?;
-        crate::config::launch_instance(&app_handle, instance).map_err(|e| e.to_string())?;
-        Ok(())
-    } else {
-        Err("Instance not found".to_string())
-    }
-}
-
-#[tauri::command]
 pub(crate) async fn start_instance(
     app_handle: AppHandle,
     state: tauri::State<'_, AppState>,
@@ -135,7 +118,7 @@ pub(crate) async fn start_instance(
         Err("Instance not found".to_string())
     }
 }
-...
+
 #[tauri::command]
 pub(crate) async fn save_instance(
     app_handle: AppHandle,
@@ -151,8 +134,6 @@ pub(crate) async fn save_instance(
     Ok(())
 }
 
-    Ok(())
-}
 
 #[tauri::command]
 pub(crate) fn delete_instance(

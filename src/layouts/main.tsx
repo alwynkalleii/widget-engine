@@ -42,7 +42,7 @@ export default function MainLayout(props: ParentProps) {
               <Index each={widgets()}>
                 {(widget) => (
                   <A
-                    href={`/widgets/${widget().id}`}
+                    href={`/widget/${widget().id}`}
                     class="flex w-full cursor-pointer items-center rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200"
                     activeClass="bg-primary/10 text-primary shadow-sm"
                     inactiveClass="text-muted-foreground hover:bg-muted hover:text-foreground"
